@@ -8,6 +8,7 @@ from config import IZHEVSK_CENTER
 INFO_HIGHLIGHT = "#7fd3ff"
 try:
     import tkintermapview
+    from . import map_tiles
 except ImportError:
     tkintermapview = None
 
@@ -128,12 +129,34 @@ def build_interface(self):
         ).pack(expand=True)
         return
 
+    # Источник карты: живой открытый сервер и/или скачанная офлайн-карта (simulator/map_tiles.py).
+    map_tiles.install_user_agent_fix()
+    source = map_tiles.choose_source()
     self.map = tkintermapview.TkinterMapView(
         self.map_frame,
         corner_radius=0,
+        database_path=source.database_path,
+        use_database_only=source.offline_only,
+        max_zoom=source.max_zoom,
     )
+    if source.url:
+        self.map.set_tile_server(source.url, max_zoom=source.max_zoom)
     self.map.pack(fill="both", expand=True)
     self.counter_label.lift()   # карта создана позже счётчика — поднимаем счётчик над ней
+
+    # Подпись источника в правом нижнем углу — так требуют условия открытых карт.
+    if source.attribution:
+        tk.Label(self.map_frame, text=source.attribution, font=("Arial", 8),
+                 fg="#333333", bg="#f2f2f2", padx=4).place(relx=1.0, rely=1.0, anchor="se")
+
+    if not source.url:
+        self.add_warning("КАРТА: нет интернета и нет офлайн-карты. "
+                         "Запустите download_map.py, когда появится интернет.")
+    elif source.offline_only:
+        self.add_warning(f"КАРТА: интернета нет, используется офлайн-карта (до зума {source.max_zoom}).")
+    else:
+        where = "офлайн-карта + " if source.database_path else ""
+        self.add_warning(f"КАРТА: {where}сервер {source.name}.")
 
     self.map.set_position(
         IZHEVSK_CENTER[0],

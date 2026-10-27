@@ -7,3 +7,4 @@ data/*.db-journal
 _to_delete/
 data/.sim_key
 *.7z
+data/map_tiles.db

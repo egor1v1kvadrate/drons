@@ -49,6 +49,47 @@ SIMULATION_KEY = _load_simulation_key()
 
 IZHEVSK_CENTER = (56.8527, 53.2115)
 
+# --- КАРТА-ПОДЛОЖКА ---
+# Открытые серверы тайлов (картинок 256x256, из которых собирается карта).
+# Программа при запуске пробует их по порядку и берёт первый, который ответил.
+# bulk_ok — можно ли скачивать с сервера карту заранее (download_map.py).
+# OpenStreetMap прямо запрещает массовое скачивание, поэтому для него False.
+# CARTO из списка убран: с октября 2026 он без API-ключа отдаёт картинку-заглушку.
+TILE_SERVERS = [
+    {
+        "name": "Esri World Street Map",
+        # у Esri в адресе сначала y, потом x
+        "url": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
+        "max_zoom": 19,
+        "attribution": "Tiles © Esri",
+        "bulk_ok": True,
+    },
+    {
+        "name": "OpenStreetMap",
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "max_zoom": 19,
+        "attribution": "© OpenStreetMap contributors",
+        "bulk_ok": False,
+    },
+    {
+        "name": "OpenTopoMap",
+        "url": "https://a.tile.opentopomap.org/{z}/{x}/{y}.png",
+        "max_zoom": 17,
+        "attribution": "© OpenStreetMap contributors, SRTM | © OpenTopoMap (CC-BY-SA)",
+        "bulk_ok": False,
+    },
+]
+
+# Офлайн-карта: сюда download_map.py складывает скачанные тайлы.
+MAP_TILES_DB = DATA_DIR / "map_tiles.db"
+
+# Какие области скачивать: (северо-запад, юго-восток, мин. зум, макс. зум).
+# Ижевск до 16, но по умолчанию download_map.py останавливается на 15 (см. --max-zoom).
+MAP_AREAS = [
+    ((56.95, 53.00), (56.76, 53.50), 8, 16),   # Ижевск с аэропортом, подробно
+    ((57.20, 48.90), (55.60, 53.80), 5, 10),   # регион до Казани (маршрут П-ТРАНЗИТ), обзорно
+]
+
 LOCATIONS = {
     "УдГУ": (56.8493, 53.2236),
     "Лента": (56.8381, 53.3112),
